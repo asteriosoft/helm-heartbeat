@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ include "heartbeat.namespace" . }}
+  name: {{ include "heartbeat.fullname" . }}
+  labels:
+{{ include "heartbeat.labels" . | indent 4 }}
+spec:
+  replicas: 1
+  # The watcher holds per-target failure timers in memory; a rolling second
+  # replica would double-alert, so replace the pod outright on updates.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+{{ include "heartbeat.selectorLabels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ include "heartbeat.selectorLabels" . | indent 8 }}
+      annotations:
+        checksum/script: {{ .Files.Get "heartbeat.py" | sha256sum }}
+    spec:
+      containers:
+      - name: {{ include "heartbeat.name" . }}
+        image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        command:
+        - python3
+        - /app/heartbeat.py
+        env:
+        - name: HEARTBEAT_TARGETS
+          value: {{ .Values.targets | toJson | quote }}
+        - name: HEARTBEAT_INTERVAL
+          value: {{ .Values.interval | quote }}
+        - name: HEARTBEAT_FAILURE_THRESHOLD
+          value: {{ .Values.failureThreshold | quote }}
+        - name: HEARTBEAT_TIMEOUT
+          value: {{ .Values.timeout | quote }}
+        - name: HEARTBEAT_LOG_CHECKS
+          value: {{ .Values.logChecks | quote }}
+        - name: HEARTBEAT_HOSTNAME
+          value: {{ .Values.hostname | quote }}
+        - name: HEARTBEAT_PING_URL
+          value: {{ .Values.pingUrl | quote }}
+        - name: TELEGRAM_BOT_TOKEN
+          value: {{ .Values.telegram.botToken | quote }}
+        - name: TELEGRAM_CHAT_ID
+          value: {{ .Values.telegram.chatId | quote }}
+        volumeMounts:
+        - name: script
+          mountPath: /app
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      volumes:
+      - name: script
+        configMap:
+          name: {{ include "heartbeat.configmap" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}

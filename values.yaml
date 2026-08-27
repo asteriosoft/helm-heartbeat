@@ -1,0 +1,61 @@
+# Default values for heartbeat.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## Image Info
+# -- Docker image source (Python is enough; the watcher only uses the stdlib)
+image: python
+# -- Docker image tag
+imageTag: "3-alpine"
+
+## Specify a imagePullPolicy
+## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+# -- Image pull policy
+imagePullPolicy: IfNotPresent
+
+## Specify an array of imagePullSecrets.
+## Secrets must be manually created in the namespace.
+## ref: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
+# -- Image pull existing secret
+imagePullSecrets:
+
+# -- List of health-check targets, each an object with `name` and `url`. Every
+# target is polled independently each cycle.
+targets: []
+  # - name: prometheus
+  #   url: http://prometheus-operated.monitoring.svc.cluster.local:9090/-/healthy
+  # - name: grafana
+  #   url: http://prometheus-grafana.monitoring.svc.cluster.local/api/health
+
+# -- Seconds between poll cycles
+interval: 30
+# -- Seconds a target must stay down before an alert is sent (300 = 5 min)
+failureThreshold: 300
+# -- Per-request timeout in seconds; a slower response counts as unhealthy
+timeout: 5
+# -- Log the result of every check each cycle, not just state changes
+logChecks: true
+# -- Optional label included in notifications (e.g. the environment name)
+hostname: ""
+# -- Optional external dead-man's-switch URL (e.g. healthchecks.io) pinged every
+# cycle so total watcher/cluster death is detected off-cluster
+pingUrl: ""
+
+telegram:
+  # -- Telegram bot token used to send notifications
+  botToken: ""
+  # -- Telegram chat id notifications are sent to
+  chatId: ""
+
+# -- Pod resources definition
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    memory: 64Mi
+
+## Node labels for pod assignment
+## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+# -- Pod's [node selector](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/)
+nodeSelector: {}

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ include "heartbeat.namespace" . }}
+  name: {{ include "heartbeat.configmap" . }}
+  labels:
+{{ include "heartbeat.labels" . | indent 4 }}
+data:
+  heartbeat.py: |-
+{{ .Files.Get "heartbeat.py" | indent 4 }}

@@ -1,0 +1,25 @@
+{{ template "chart.header" . }}
+{{ template "chart.description" . }}
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+## Installing the Chart
+
+To install the chart with the release name `my-release`:
+
+```console
+$ helm repo add helm-heartbeat git+https://bitbucket.org/asteriosoft/helm-heartbeat?ref={{ template "chart.version" . }}
+$ helm install my-release helm-heartbeat/{{ template "chart.name" . }}
+```
+
+The watcher polls the health endpoint of each configured target and sends a
+Telegram notification once a target has been unavailable for longer than the
+failure threshold, and a recovery notification once it is healthy again. It runs
+independently of Prometheus/Alertmanager on purpose, so it can still alert when
+those components themselves are down.
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}
